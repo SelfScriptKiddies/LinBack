@@ -1,9 +1,6 @@
 #include "logger.h"
 #include <stdarg.h>
 
-#define LOG_LEVEL TRACE
-#define COLOR_LOG
-
 /*
 Main idea of this code is to use only functions, which are compiled, and give empty functions, if level won't be displayed.
 Optimizing size of binary :)
@@ -15,6 +12,12 @@ Optimizing size of binary :)
 #define WARNING     40
 #define ERROR       50
 #define CRITICAL    60
+#define NO_LOGS     100
+
+#ifndef LOG_LEVEL
+#define LOG_LEVEL TRACE
+#endif
+#define COLOR_LOG
 
 // Colorful config
 
@@ -40,44 +43,24 @@ Optimizing size of binary :)
 
 // Log function
 
-#ifdef LOG_LEVEL <= CRITICAL
+#if LOG_LEVEL <= CRITICAL
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 static const char *FORMAT = "%d:%d:%d [%s%s%s : %s] %s \n"; // {Hour}:{Minute}:{Second} [{Color}{Level}{Reset} : {Name}] {message}
 
-static void log(const char* level, const char* color, const char* root, const char* message) {
+static void log(const char* level, const char* color, const char* root, char* message) {
     time_t now_time = time(NULL);
     struct tm time = *localtime(&now_time);
     printf(FORMAT, time.tm_hour, time.tm_min, time.tm_sec, color, level, KRESET, root, message);
     free(message);
 }
 
-static const char* concat_variadic(const char* fmt, va_list arg_list) {
-    const char* message = malloc(1024);
-    char buffer[32];
-    while (*fmt != 0) {
-        switch (*fmt)
-        {
-        case 's':
-            strcat(message, va_arg(arg_list, char *));
-            break;
-        case 'd':
-            sprintf(buffer, "%d", va_arg(arg_list, int));
-            break;
-        case 'f':
-            sprintf(buffer, "%f", va_arg(arg_list, double));
-            break;
-        case 'c':
-            sprintf(buffer, "%c", va_arg(arg_list, int));
-            break;
-        default:
-            break;
-        }
-        ++fmt;
-    }
-
+static char* concat_variadic(const char* fmt, va_list arg_list) {
+    char* message = malloc(1024);
+    vsprintf(message, fmt, arg_list);
     return message;
 }
 #endif
@@ -90,7 +73,7 @@ static const char* concat_variadic(const char* fmt, va_list arg_list) {
 void trace(const char* root, const char* fmt_args, ...) {
     va_list args;
     va_start(args, fmt_args);
-    const char* message = concat_variadic(args, fmt_args);
+    char* message = concat_variadic(fmt_args, args);
     log("TRACE", KWHITE, root, message);
 };
 #else
@@ -103,7 +86,7 @@ void trace(const char* root, const char* fmt_args, ...) {};
 void debug(const char* root, const char* fmt_args, ...) {
     va_list args;
     va_start(args, fmt_args);
-    const char* message = concat_variadic(args, fmt_args);
+    char* message = concat_variadic(fmt_args, args);
     log("DEBUG", KCYAN, root, message);
 };
 #else
@@ -116,7 +99,7 @@ void debug(const char* root, const char* fmt_args, ...) {};
 void info(const char* root, const char* fmt_args, ...) {
     va_list args;
     va_start(args, fmt_args);
-    const char* message = concat_variadic(args, fmt_args);
+    char* message = concat_variadic(fmt_args, args);
     log("INFO", KBLUE, root, message);
 };
 #else
@@ -129,7 +112,7 @@ void info(const char* root, const char* fmt_args, ...) {};
 void warning(const char* root, const char* fmt_args, ...) {
     va_list args;
     va_start(args, fmt_args);
-    const char* message = concat_variadic(args, fmt_args);
+    char* message = concat_variadic(fmt_args, args);
     log("WARNING", KYELLOW, root, message);
 };
 #else
@@ -140,18 +123,18 @@ void warning(const char* root, const char* fmt_args, ...) {};
 void error(const char* root, const char* fmt_args, ...) {
     va_list args;
     va_start(args, fmt_args);
-    const char* message = concat_variadic(args, fmt_args);
+    char* message = concat_variadic(fmt_args, args);
     log("ERROR", KRED, root, message);
 };
 #else
 void error(const char* root, const char* fmt_args, ...) {};
 #endif
 
-#if LOG_LEVEL >= FATAL
+#if LOG_LEVEL <= CRITICAL
 void fatal(const char* root, const char* fmt_args, ...) {
     va_list args;
     va_start(args, fmt_args);
-    const char* message = concat_variadic(args, fmt_args);
+    char* message = concat_variadic(fmt_args, args);
     log("!FATAL!", KRED, root, message);
 };
 #else
