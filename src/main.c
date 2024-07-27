@@ -41,9 +41,10 @@ int main(int argc, char *argv[]) {
 
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
     
-    trace("root", "Mode: %s\nNumber:%d\n", "trace", 2);
+    trace("root", "Mode: %s\nNumber:%d\n", "trace", 1);
     debug("root", "Mode: %s\nNumber:%d\n", "debug", 2);
     info("root", "Mode: %s\nNumber:%d\n", "info", 3);
+    success("root", "Mode: %s\nNumber:%f\n", "success", 3.5);
     warning("root", "Mode: %s\nNumber:%d\n", "warning", 4);
     error("error", "Mode: %s\nNumber:%d\n", "error", 5);
     fatal("root", "Mode: %s\nNumber:%d\n", "fatal", 6);

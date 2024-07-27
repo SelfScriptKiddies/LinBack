@@ -9,6 +9,7 @@ Optimizing size of binary :)
 #define TRACE       10
 #define DEBUG       20
 #define INFO        30
+#define SUCCESS     35
 #define WARNING     40
 #define ERROR       50
 #define CRITICAL    60
@@ -65,8 +66,6 @@ static char* concat_variadic(const char* fmt, va_list arg_list) {
 }
 #endif
 
-
-
 // TRACE LEVEL
 
 #if LOG_LEVEL >= TRACE
@@ -104,6 +103,19 @@ void info(const char* root, const char* fmt_args, ...) {
 };
 #else
 void info(const char* root, const char* fmt_args, ...) {};
+#endif
+
+// SUCCESS LEVEL
+
+#if LOG_LEVEL <= SUCCESS
+void success(const char* root, const char* fmt_args, ...) {
+    va_list args;
+    va_start(args, fmt_args);
+    char* message = concat_variadic(fmt_args, args);
+    log("SUCCESS", KGREEN, root, message);
+};
+#else
+void success(const char* root, const char* fmt_args, ...) {};
 #endif
 
 // WARNING LEVEL 
